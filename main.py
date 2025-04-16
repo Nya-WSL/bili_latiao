@@ -3,7 +3,7 @@ import log
 import bili_auth
 import sys, os, json, requests, time
 
-currentVersion = "1.0.0-beta"
+currentVersion = "1.1.0-beta"
 frontSpace = (51-len(currentVersion))*" "
 logger = log.logger
 
@@ -89,7 +89,7 @@ def send_latiao(num):
         'csrf_token': config["bili_jct"],# 跨站请求伪造token
     }
     headers = {
-        'Cookie': f"SESSDATA={config["SESSDATA"]}; bili_jct={config["bili_jct"]}",
+        'Cookie': f'SESSDATA={config["SESSDATA"]}; bili_jct={config["bili_jct"]}',
         'Origin': 'https//live.bilibili.com',
         'Referer': f'https://live.bilibili.com/{config["room_id"]}',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36'
@@ -103,10 +103,10 @@ def send_latiao(num):
         else:
             logger.info(response["msg"])
     else:
-        logger.error(f"Send latiao to {config["room_id"]} failed.Status code: {response.status_code}")
+        logger.error(f'Send latiao to {config["room_id"]} failed.Status code: {response.status_code}')
 
 # 辣条赠送循环函数
-def manual_send_latiao():
+def manual_send_latiao(loop = False):
     with open("config.json", "r", encoding="utf-8") as f:
         config = json.load(f)
 
@@ -120,9 +120,20 @@ def manual_send_latiao():
     if config["room_id"] == 0:
         get_roomid()
 
-    while True:
-        num = input("Number:")
+    num = int(input("Number:"))
+
+    if not loop:
         send_latiao(num)
+        time.sleep(3)
+        main()
+    else:
+        while True:
+            if num > 0:
+                send_latiao(1)
+                num -= 1
+            else:
+                time.sleep(3)
+                main()
 
 def main():
     with open("config.json", "r", encoding="utf-8") as f:
@@ -149,6 +160,7 @@ def main():
     print("""1.登录B站账号
 2.设置房间号
 3.赠送辣条(需提前准备银瓜子)
+4.循环赠送辣条
 ———————————————————————————""")
 
     while True:
@@ -162,6 +174,9 @@ def main():
         elif mode_selector == "3":
             mode_selector = "send_latiao"
             break
+        elif mode_selector == "4":
+            mode_selector = "send_latiao_loop"
+            break
         else:
             print("输入有误,请重试...")
 
@@ -172,5 +187,7 @@ def main():
         manual_send_latiao()
     elif mode_selector == "get_roomid":
         get_roomid()
+    elif mode_selector == "send_latiao_loop":
+        manual_send_latiao(True)
 
 main()
