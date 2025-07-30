@@ -1,9 +1,9 @@
 #coding=utf-8
 import log
-import bili_auth
+import bili_api
 import sys, os, json, requests, time
 
-currentVersion = "1.1.0-beta"
+currentVersion = "1.2.0-beta"
 frontSpace = (51-len(currentVersion))*" "
 logger = log.logger
 
@@ -19,17 +19,16 @@ sys.excepthook = handle_exception
 if not os.path.exists("config.json"):
     config = {
         "login": False,
-        "room_id": 0,
-        "uid": 0
+        "room_id": 0
     }
     with open("config.json", "w+", encoding="utf-8") as f:
         json.dump(config, f, ensure_ascii=False, indent=4)
 
 # 登录B站
 def login_bilibili():
-    loginInfo = bili_auth.get_qrcode()
+    loginInfo = bili_api.get_qrcode()
     input(f"如无法加载二维码可打开 {os.getcwd()}\\login.png 扫码登录\n确认登录后请按任意键继续...")
-    status = bili_auth.login(loginInfo)
+    status = bili_api.login(loginInfo)
     if status == True:
         time.sleep(1)
         main()
@@ -135,6 +134,66 @@ def manual_send_latiao(loop = False):
                 time.sleep(3)
                 main()
 
+def like_report():
+    with open("config.json", "r", encoding="utf-8") as f:
+        config = json.load(f)
+
+    uid = config.get("DedeUserID", 0)
+    anchor_id = get_uid(config["room_id"])["data"]["uid"]
+    like_num = int(input("点赞数(上限1000)："))
+    room_id = config.get("room_id", 0)
+    csrf = config.get("bili_jct", "")
+    query = bili_api.wbi_sign()
+
+    url = f"https://api.live.bilibili.com/xlive/app-ucenter/v1/like_info_v3/like/likeReportV3"
+
+    params = {
+        "click_time": like_num,
+        "room_id": room_id,
+        "uid": uid,
+        "anchor_id": anchor_id,
+        "csrf": csrf
+    }
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0",
+        'Cookie': f'SESSDATA={config["SESSDATA"]}; bili_jct={config["bili_jct"]}',
+        'Origin': 'https//live.bilibili.com',
+        'Referer': f'https://live.bilibili.com/{config["room_id"]}',
+    }
+
+    params.update(query)
+
+    if uid == 0 or room_id == 0 or csrf == "":
+        logger.error(f"参数错误，拒绝请求: uid: {uid} | room_id: {room_id} | csrf: {csrf}")
+        time.sleep(3)
+        main()
+
+    if like_num > 1000:
+        logger.warning("点赞数上限1000，超过部分将不会计算")
+
+    try:
+        response = requests.post(url, headers=headers, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            if data["code"] == 0:
+                logger.info("点赞成功")
+                time.sleep(3)
+                main()
+            else:
+                logger.error(f"点赞失败：code: {data["code"]} | msg: {data["message"]}")
+                time.sleep(3)
+                main()
+        else:
+            logger.error(f"请求失败，错误码：{response.status_code}")
+            time.sleep(3)
+            main()
+
+    except Exception as e:
+        logger.error(e)
+        time.sleep(3)
+        main()
+
 def main():
     with open("config.json", "r", encoding="utf-8") as f:
         config = json.load(f)
@@ -152,7 +211,7 @@ def main():
 ┃    Copyright © 2021-2025. All rights reserved.     ┃
 ┃                                                    ┃
 ┠────────────────────────────────────────────────────┨
-┃                TakahashiHaruki & SHDocter  2025/04 ┃
+┃                TakahashiHaruki & SHDocter  2025/07 ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 账号状态：{"已获取" if config["login"] else "未获取"} 目标房间：{config["room_id"] if config["room_id"] != 0 else "未设置"}
 ———————————————————————————''')
@@ -161,6 +220,7 @@ def main():
 2.设置房间号
 3.赠送辣条(需提前准备银瓜子)
 4.循环赠送辣条
+5.自动点赞(每天上限1000)
 ———————————————————————————""")
 
     while True:
@@ -177,10 +237,14 @@ def main():
         elif mode_selector == "4":
             mode_selector = "send_latiao_loop"
             break
+        elif mode_selector == "5":
+            mode_selector = "like_report"
+            break
         else:
             print("输入有误,请重试...")
 
     print("———————————————————————————")
+
     if mode_selector == "login":
         login_bilibili()
     elif mode_selector == "send_latiao":
@@ -189,5 +253,7 @@ def main():
         get_roomid()
     elif mode_selector == "send_latiao_loop":
         manual_send_latiao(True)
+    elif mode_selector == "like_report":
+        like_report()
 
 main()
