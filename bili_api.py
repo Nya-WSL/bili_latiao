@@ -134,7 +134,35 @@ def get_qrcode():
     img.save("login.png")
     return loginInfo["data"]["qrcode_key"]
 
+def get_buvid3():
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/149.0"
+    }
+
+    response = requests.get(
+        url = "https://api.bilibili.com/x/web-frontend/getbuvid",
+        headers=headers
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+        if data["code"] == 0:
+            buvid3 = data["data"]["buvid"]
+            return buvid3
+        else:
+            logger.error(f"获取buvid3失败，错误信息：{data['code']} {data['message']}")
+    else:
+        logger.error(f"获取buvid3失败，HTTP状态码：{response.status_code}")
+
+    return False
+
 def login(loginInfo):
+    buvid3 = get_buvid3()
+
+    if not buvid3:
+        logger.error("获取buvid3失败，无法登录")
+        return False
+
     response = requests.get(
         url = "https://passport.bilibili.com/x/passport-login/web/qrcode/poll",
         headers = {
@@ -161,6 +189,7 @@ def login(loginInfo):
         config[cookie.name] = cookie.value
 
     config["login"] = True
+    config["buvid3"] = buvid3
 
     with open("config.json", "w+", encoding="utf-8") as f:
         json.dump(config, f, ensure_ascii=False, indent=4)

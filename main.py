@@ -2,9 +2,10 @@
 import log
 import random
 import bili_api
+import traceback
 import sys, os, json, requests, time
 
-currentVersion = "1.3.0-beta"
+currentVersion = "1.3.1"
 frontSpace = (51 - len(currentVersion)) * " "
 logger = log.logger
 
@@ -55,8 +56,6 @@ def get_roomid():
 
 
 def get_uid(room_id):
-    with open("config.json", "r", encoding="utf-8") as f:
-        config = json.load(f)
     url = "https://api.live.bilibili.com/room/v1/Room/get_info"
     params = {"room_id": room_id}
     headers = {
@@ -188,9 +187,10 @@ def like_report(once=True):
     }
 
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0",
-        "Cookie": f'SESSDATA={config["SESSDATA"]}; bili_jct={config["bili_jct"]}',
-        "Origin": "https//live.bilibili.com",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/149.0",
+        "Cookie": f'buvid3={config["buvid3"]}; SESSDATA={config["SESSDATA"]}; bili_jct={config["bili_jct"]}',
+        "Host": "api.live.bilibili.com",
+        "Origin": "https://live.bilibili.com",
         "Referer": f'https://live.bilibili.com/{config["room_id"]}',
     }
 
@@ -219,7 +219,7 @@ def like_report(once=True):
                     main()
                 else:
                     logger.error(
-                        f"点赞失败：code: {data["code"]} | msg: {data["message"]}"
+                        f"点赞失败：code: {data['code']} | msg: {data['message']}"
                     )
                     time.sleep(3)
                     main()
@@ -270,7 +270,7 @@ def like_report(once=True):
             main()
 
     except Exception as e:
-        logger.error(e)
+        logger.error(traceback.format_exc())
         time.sleep(3)
         main()
 
@@ -293,7 +293,7 @@ def main():
 ┃    Copyright © 2021-2025. All rights reserved.     ┃
 ┃                                                    ┃
 ┠────────────────────────────────────────────────────┨
-┃                TakahashiHaruki & SHDocter  2025/11 ┃
+┃                TakahashiHaruki & SHDocter  2026/03 ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 账号状态：{"已获取" if config["login"] else "未获取"} 目标房间：{config["room_id"] if config["room_id"] != 0 else "未设置"}
 ———————————————————————————"""
