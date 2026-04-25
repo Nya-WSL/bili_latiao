@@ -1,6 +1,6 @@
 [project]
-name = "bili-latiao"
-version = "0.1.0"
+name = "bili_latiao"
+version = "2.3.2"
 description = ""
 authors = [{ name = "狐日泽", email = "shdocter@nya-wsl.com" }]
 requires-python = ">=3.10,<3.14"

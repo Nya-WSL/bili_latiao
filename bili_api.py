@@ -157,6 +157,50 @@ def get_buvid3():
 
     return False
 
+def get_uname(mid):
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/149.0"
+    }
+
+    params = {
+        "mid": mid
+    }
+    
+    response = requests.get(
+        url = "https://api.bilibili.com/x/web-interface/card",
+        headers=headers,
+        params=params
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+        if data["code"] == 0:
+            uname = data["data"]["card"]["name"]
+            return uname
+        else:
+            logger.error(f"获取用户昵称失败，错误信息：{data['code']} {data['message']}")
+    else:
+        logger.error(f"获取用户昵称失败，HTTP状态码：{response.status_code}")
+
+    return False
+
+def get_uid(room_id):
+    url = "https://api.live.bilibili.com/room/v1/Room/get_info"
+    params = {"room_id": room_id}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    }
+    response = requests.get(url=url, params=params, headers=headers)
+    try:
+        data = response.json()
+        if data["code"] != 0:
+            raise RuntimeError(f"error code: {data}")
+    except Exception as e:
+        logger.error(f"获取uid失败: {e}")
+        raise
+    
+    return data
+
 def login(loginInfo):
     buvid3 = get_buvid3()
 
@@ -189,9 +233,10 @@ def login(loginInfo):
         config.setdefault(cookie.name, "")
         config[cookie.name] = cookie.value
 
-    config["login"] = True
+    config["uname"] = get_uname(config["DedeUserID"])
     config["buvid3"] = buvid3
 
     with open("config.json", "w+", encoding="utf-8") as f:
         json.dump(config, f, ensure_ascii=False, indent=4)
+
     return True

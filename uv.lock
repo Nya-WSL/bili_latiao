@@ -12,8 +12,8 @@ wheels = [
 ]
 
 [[package]]
-name = "bili-latiao"
-version = "0.1.0"
+name = "bili_latiao"
+version = "2.3.2"
 source = { virtual = "." }
 dependencies = [
     { name = "pillow" },
