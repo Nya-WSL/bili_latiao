@@ -88,7 +88,7 @@ def generate_qr_in_cmd(text):
     # 创建QRCode对象
     qr = qrcode.QRCode(
         version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        error_correction=1,  # ERROR_CORRECT_L
         box_size=1,  # 控制二维码在终端中的大小
         border=1,
     )
@@ -131,7 +131,8 @@ def get_qrcode():
     # 生成二维码
     generate_qr_in_cmd(loginInfo['data']['url'])
     img = qrcode.make(loginInfo['data']['url'])
-    img.save("login.png")
+    with open("login.png", "wb") as f:
+        img.save(f)
     return loginInfo["data"]["qrcode_key"]
 
 def get_buvid3():

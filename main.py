@@ -5,7 +5,7 @@ import bili_api
 import traceback
 import sys, os, json, requests, time
 
-currentVersion = "1.3.1"
+currentVersion = "1.3.2"
 frontSpace = (51 - len(currentVersion)) * " "
 logger = log.logger
 
@@ -65,11 +65,11 @@ def get_uid(room_id):
     try:
         data = response.json()
         if data["code"] != 0:
-            raise "return error code"
+            raise RuntimeError(f"error code: {data}")
     except Exception as e:
         logger.error(f"获取uid失败: {e}")
         input("按任意键继续...")
-        return
+        raise
 
     return data
 
