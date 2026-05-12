@@ -10,7 +10,7 @@ from tkinter import ttk, messagebox, scrolledtext
 from PIL import Image, ImageTk
 import threading
 
-currentVersion = "2.3.2"
+currentVersion = "2.3.3"
 logger = log.logger
 
 
