@@ -7,7 +7,7 @@ requires-python = ">=3.10,<3.14"
 readme = "README.md"
 dependencies = [
     "qrcode (>=8.2,<9.0)",
-    "pillow (>=12.2.0,<13.0.0)",
+    "pillow>=12.3.0,<13.0.0",
     "requests>=2.34.0,<3.0.0",
 ]
 
